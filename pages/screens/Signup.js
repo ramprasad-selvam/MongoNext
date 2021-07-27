@@ -62,6 +62,7 @@ export default function Signup({ data }) {
                         <small id="emailHelp" className="form-text text-danger pt-1">{passError}</small>
                         : null}
                 </div>
+                
                 <div className="mt-4 d-flex align-items-center justify-content-center">
                     <button type="button" className="btn btn-success mx-3" onClick={validate}>Submit</button>
                     <button type="button" className="btn btn-primary mx-3" onClick={validate}>Sign Up</button>
