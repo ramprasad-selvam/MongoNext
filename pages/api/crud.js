@@ -5,7 +5,11 @@ import { ObjectID } from 'mongodb';
 const handler = nc()
     .use(middleware)
     .get(async (req, res) => {
-        req.db.collection('users').find({}).toArray((err, result)=>{
+        let { query } = req;
+        if(query._id){
+            query._id=ObjectID(query._id);
+        }
+        req.db.collection('users').find(query).toArray((err, result)=>{
             if (err) throw err;
             res.send(result);
         });
