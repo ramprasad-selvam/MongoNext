@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import md5 from 'md5';
+import Link from 'next/link';
 
 export default function App({ data }) {
     let [email, setEmail] = useState('');
@@ -62,10 +63,10 @@ export default function App({ data }) {
                         <small id="emailHelp" className="form-text text-danger pt-1">{passError}</small>
                         : null}
                 </div>
-                <div className="mt-4 d-flex align-items-center justify-content-center">
-                    <button type="button" className="btn btn-success mx-3" onClick={validate}>Submit</button>
-                    <button type="button" className="btn btn-primary mx-3" onClick={validate}>Sign Up</button>
+                <div class="mt-3 d-grid gap-2 mb-1">
+                    <button class="btn btn-primary bg-dark" type="button" onClick={validate}>Submit</button>
                 </div>
+                <p>Create new account? Click <Link href="/screens/signup" className="text-danger">here!</Link></p>
             </div>
             <div className="col-sm-2" />
         </div>

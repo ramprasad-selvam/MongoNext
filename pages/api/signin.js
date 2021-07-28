@@ -5,7 +5,7 @@ const handler = nc()
     .use(middleware)
     .post((req, res) => {
         const body= req.body;
-        req.db.collection('users').find({ email: body.name, password: body.pass }).toArray((err, result)=>{
+        req.db.collection('users').find({ email: body.name, password: body.pass, deletedAt:0 }).toArray((err, result)=>{
             if (err) throw err;
             res.send(result);
         });
