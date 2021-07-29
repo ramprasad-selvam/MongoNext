@@ -1,8 +1,7 @@
 import React from 'react';
 import Head from 'next/head'
 import { MongoClient } from 'mongodb';
-import Link from 'next/link'
-import Admin from './screens/Admin'
+import Link from 'next/link';
 export default function Home({ isConnected }) {
   return (
     <React.Fragment>
