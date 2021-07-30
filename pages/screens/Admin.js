@@ -1,111 +1,41 @@
 import React, { useState } from 'react'
 import Head from 'next/head'
+import Link from 'next/link';
+import md5 from 'md5';
 
-export default function Admin({ list }) {
-    let [data, setData] = useState(list);
-    let [name, setName] = useState('');
-    let [nameError, setNameError] = useState('');
-    let [email, setEmail] = useState('');
-    let [emailError, setEmailError] = useState('');
-    let [editData, setEditData] = useState();
-    let [index, setIndex] = useState();
-    let [isAdmin, setIsAdmin] = useState(false);
-    let [isModalVisible, setIsModalVisible] = useState(false);
+export default function Admin({ list, id }) {
+    let [name, setName] = useState(list[0].name);
+    let [nameError, setNameError] = useState();
+    let [pass, setPass] = useState('');
+    let [pic, setPic] = useState(list[0].avatar);
+    let [cpass, setCpass] = useState('');
+    let [cpassError, setCpassError] = useState('');
     let [reqSuccess, setReqSuccess] = useState(false);
     let [reqError, setReqError] = useState(false);
-    const column = [
-        '',
-        '_id',
-        'role',
-        'avatar',
-        'root',
-        'name',
-        'email',
-        // 'createdAt',
-        'edit',
-        'delete'
-    ];
-    const Edit = (val, i) => {
-        setIndex(i);
-        setEditData(val);
-        setName(val.name);
-        setEmail(val.email);
-        setIsAdmin(val.root);
-        setIsModalVisible(true);
-    }
-    const Delete = async (val, i) => {
-        let body = {
-            _id: val._id
-        }
-        let res = await fetch(`http://localhost:3000/api/crud`, {
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            method: 'delete',
-            body: JSON.stringify(body)
-        })
-        let list = await res.json();
-        if (list) {
-            let Updated = data.filter((ival, index) => i !== index);
-            setData(Updated);
-        }
-    }
-    const content = (col, val, i) => {
-        if (!col) {
-            return i + 1;
-        } else if (col == 'avatar') {
-            return <img src={val[col]} style={{ height: 60, width: 60, objectFit: 'contain' }} />;
-        } else if (col == 'edit') {
-            return <button className="btn btn-primary shadow-none" type="button" onClick={() => Edit(val, i)}>Edit</button>;
-        } else if (col == 'delete') {
-            return <button className="btn btn-danger shadow-none" type="button" onClick={() => {
-                setIndex(i);
-                setEditData(val);
-            }} data-bs-toggle="modal" data-bs-target="#exampleModal">Delete</button>;
-        } else if (col == 'root') {
-            return val[col] ? 'Yes' : 'no';
-        } else {
-            return val[col];
-        }
-    }
-    const validate = () => {
+    
+    const validate = async () => {
         if (name && name.trim()) {
-            setNameError('');
+            setNameError('')
         } else {
-            setNameError('Invalid name');
+            setNameError('Invalid Name');
             return;
         }
-        let reg = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        if (email && reg.test(String(email).toLowerCase())) {
-            setEmailError('');
+        if (cpass === pass) {
+            setCpassError('')
         } else {
-            setEmailError('Invalid email');
+            setCpassError('Confirm password not matching');
             return;
         }
         submit();
     }
     const submit = async () => {
-        if (editData.email === email) {
-            doUpdate();
-        } else {
-            let res = await fetch(`http://localhost:3000/api/crud?email=${email}`);
-            let check = await res.json();
-            if (check.length) {
-                setEmailError(`This email-${email} already exsist`);
-            } else {
-                doUpdate();
-            }
+        let body = { ...list[0] };
+        body.name = name;
+        body.avatar = pic;
+        if (pass) {
+            body.password = md5(pass);
         }
-    }
-    const doUpdate = async () => {
-        let body = {
-            ...editData,
-            name,
-            email,
-            root: isAdmin
-        }
-        let res = await fetch(`http://localhost:3000/api/crud`, {
+        let res = await fetch('http://localhost:3000/api/crud', {
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
@@ -113,19 +43,16 @@ export default function Admin({ list }) {
             method: 'put',
             body: JSON.stringify(body)
         })
-        let list = await res.json();
-        if (list) {
-            let Updated = [...data];
-            Updated[index] = body;
-            setData(Updated);
+        let data = await res.json()
+        if(data){
             setReqSuccess(true);
-            setTimeout(() => {
-                setReqSuccess(false);
-                setIsModalVisible(false);
-            }, 2500);
         } else {
             setReqError(true)
         }
+        setTimeout(() => {
+            setReqSuccess(false);
+            setReqError(false);
+        }, 2500);
     }
     return (
         <React.Fragment>
@@ -136,83 +63,73 @@ export default function Admin({ list }) {
                 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous"></link>
             </Head>
             <main className="w-100 p-3">
-                {isModalVisible ?
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Edit User</h5>
-                                <button type="button" class="btn-close" onClick={() => setIsModalVisible(false)}></button>
-                            </div>
-                            <div class="modal-body">
-                                {reqSuccess ? <div class="alert alert-success" role="alert">
-                                    User data updated.
-                            </div> : null}
-                                {reqError ? <div class="alert alert-danger" role="alert">
-                                    Something went wrong.
-                            </div> : null}
-                                <div className="form-group mt-1">
-                                    <label for="name" className='pb-1'>Name</label>
-                                    <input type="text" className={`form-control shadow-none ${nameError ? 'border border-danger' : ''}`} id="name" aria-describedby="nameHelp" placeholder="Enter email" onChange={e => setName(e.target.value)} value={name} />
-                                    {nameError ?
-                                        <small id="nameHelp" className="form-text text-danger pt-1">{nameError}</small>
-                                        : null}
-                                </div>
-                                <div className="form-group mt-3">
-                                    <label for="email" className='pb-1'>Email</label>
-                                    <input type="text" className={`form-control shadow-none ${emailError ? 'border border-danger' : ''}`} id="email" aria-describedby="emailHelp" placeholder="Enter email" onChange={e => setEmail(e.target.value)} value={email} />
-                                    {emailError ?
-                                        <small id="emailHelp" className="form-text text-danger pt-1">{emailError}</small>
-                                        : null}
-                                </div>
-                                <div class="form-check mt-3">
-                                    <input class="form-check-input shadow-none" type="checkbox" value="" id="defaultCheck1" checked={isAdmin} onClick={() => setIsAdmin(!isAdmin)} />
-                                    <label class="form-check-label" for="defaultCheck1">
-                                        Is Admin ?
-                                    </label>
-                                </div>
-
-                                <div class="mt-4 d-grid gap-2 mb-1">
-                                    <button class="btn btn-primary" type="button" onClick={validate}>Update</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div> :
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                {column.map(ival => {
-                                    return <th className="text-capitalize">{ival}</th>
-                                })}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {data.map((ival, i) => {
-                                return (<tr>
-                                    {column.map(jval => {
-                                        return <td>{content(jval, ival, i)}</td>
-                                    })}
-                                </tr>)
-                            })}
-                        </tbody>
-                    </table>}
-                <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                Are you sure you want to delete {editData ? editData.name : ''} ?
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary" onClick={() => Delete(val, i)}>Save changes</button>
-                            </div>
+                <div className="row col-12">
+                    <div className="col-sm-10" />
+                    <div className="col-sm-2">
+                        <div className="dropdown">
+                            <a className="text-decoration-none text-dark" href="javascript:void(0)" role="button" id="dropdownMenuLink" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img className="mx-2" src={list[0].avatar} style={{ width: 50, height: 50, objectFit: 'contain', borderRadius: 25 }} />
+                                Dropdown link
+                            </a>
+                            <ul className="dropdown-menu" aria-labelledby="dropdownMenuLink">
+                                <li><a className="dropdown-item" href="javascript:void(0)" onClick={() => { }}>Profile</a></li>
+                                <li><Link href={`/screens/Users?_id=${id}`}><a className="dropdown-item" href="javascript:void(0)">Users</a></Link></li>
+                                <li><Link href="/screens/App"><a className="dropdown-item" href="javascript:void(0)">Logout</a></Link></li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-
+                <div className="row col-sm-12 m-0">
+                    <div className="col-sm-2" />
+                    <div className="col-sm-8 mt-5">
+                    {reqSuccess ? <div className="alert alert-success" role="alert">
+                                        User data updated.
+                            </div> : null}
+                                    {reqError ? <div className="alert alert-danger" role="alert">
+                                        Something went wrong.
+                            </div> : null}
+                        <h3>User Profile,</h3>
+                        <div className="form-group mt-3 text-center">
+                            <label for="image">
+                                <input type="file" name="image" id="image" style={{ display: 'none' }} accept="image/*" onChange={e => {
+                                    let reader = new FileReader();
+                                    reader.onload = (e) => {
+                                        let image = e.target.result;
+                                        setPic(image)
+                                    };
+                                    reader.readAsDataURL(e.target.files[0]);
+                                }} />
+                                <img src={pic} style={{ width: 200, height: 200, objectFit: 'contain', borderRadius: 100 }} data-toggle="tooltip" data-placement="right" title="Change Image" />
+                            </label>
+                        </div>
+                        <div className="form-group mt-3">
+                            <label for="name1" className='pb-1'>Name</label>
+                            <input type="email" className={`form-control shadow-none ${nameError ? 'border border-danger' : ''}`} id="name1" placeholder="Enter name" value={name} onChange={e => setName(e.target.value)} />
+                            {nameError ?
+                                <small className="form-text text-danger pt-1">{nameError}</small>
+                                : null}
+                        </div>
+                        <div className="form-group mt-3">
+                            <label for="email1" className='pb-1'>Email</label>
+                            <input type="email" className={`form-control shadow-none`} id="email1" placeholder="Enter email" value={list[0].email} disabled />
+                        </div>
+                        <div className="form-group mt-3">
+                            <label for="pass1" className='pb-1'>New Password</label>
+                            <input type="password" className={`form-control shadow-none`} id="pass1" placeholder="Password" value={pass} onChange={e => setPass(e.target.value)} />
+                        </div>
+                        <div className="form-group mt-3">
+                            <label for="pass2" className='pb-1'>Confirm New Password</label>
+                            <input type="password" className={`form-control shadow-none ${cpassError ? 'border border-danger' : ''}`} id="pass2" placeholder="Password" value={cpass} onChange={e => setCpass(e.target.value)} />
+                            {cpassError ?
+                                <small className="form-text text-danger pt-1">{cpassError}</small>
+                                : null}
+                        </div>
+                        <div className="mt-4 d-grid gap-2 mb-1">
+                            <button className="btn btn-primary bg-dark" type="button" onClick={validate}>Submit</button>
+                        </div>
+                    </div>
+                    <div className="col-sm-2" />
+                </div>
             </main>
             <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
@@ -220,9 +137,9 @@ export default function Admin({ list }) {
     )
 }
 export async function getServerSideProps(context) {
-    let res = await fetch('http://localhost:3000/api/crud');
+    let res = await fetch(`http://localhost:3000/api/crud?_id=${context.query._id}`);
     let list = await res.json();
     return {
-        props: { list },
+        props: { list, id: context.query._id },
     }
 }

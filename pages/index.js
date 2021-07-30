@@ -14,20 +14,8 @@ export default function Home({ isConnected }) {
       <main>
         Mongodb {isConnected ? '' : 'Not'} Connected
         <br />
-        <Link href="/screens/Admin">
-          Admin
-        </Link>
-        <br />
-        <Link href="/screens/Signup">
-          Signup
-        </Link>
-        <br />
-        <Link href="/screens/User">
-          User
-        </Link>
-        <br />
         <Link href="/screens/App">
-          App
+          Get Started.
         </Link>
 
       </main>

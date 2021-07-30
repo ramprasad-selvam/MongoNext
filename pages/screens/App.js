@@ -2,8 +2,11 @@ import React, { useState } from 'react'
 import md5 from 'md5';
 import Link from 'next/link';
 import Head from 'next/head';
+import { useRouter } from 'next/router'
 
 export default function App({ data }) {
+    const router = useRouter();
+
     let [email, setEmail] = useState('');
     let [emailError, setEmailError] = useState('');
     let [pass, setPass] = useState('');
@@ -40,10 +43,12 @@ export default function App({ data }) {
         })
         let data = await res.json()
         if (data && data.length) {
-            console.log(data);
-        } else {
-
-        }
+            if(data[0].root){
+                router.push(`/screens/Admin?_id=${data[0]._id}`)
+            } else {
+                router.push(`/screens/User?_id=${data[0]._id}`)
+            }
+        } 
     }
     return (
         <React.Fragment>
@@ -72,10 +77,10 @@ export default function App({ data }) {
                                 <small id="emailHelp" className="form-text text-danger pt-1">{passError}</small>
                                 : null}
                         </div>
-                        <div class="mt-3 d-grid gap-2 mb-1">
-                            <button class="btn btn-primary bg-dark" type="button" onClick={validate}>Submit</button>
+                        <div className="mt-3 d-grid gap-2 mb-1">
+                            <button className="btn btn-primary bg-dark" type="button" onClick={validate}>Submit</button>
                         </div>
-                        <p>Create new account? Click <Link href="/screens/signup" className="text-danger">here!</Link></p>
+                        <p>Create new account? Click <Link href="/screens/Signup" className="text-danger">here!</Link></p>
                     </div>
                     <div className="col-sm-2" />
                 </div>
@@ -85,10 +90,3 @@ export default function App({ data }) {
         </React.Fragment>
     )
 }
-// export async function getServerSideProps(context) {
-//     let res = await fetch('http://localhost:3000/api/crud');
-//     let data = await res.json()
-//     return {
-//         props: { data },
-//     }
-// }
